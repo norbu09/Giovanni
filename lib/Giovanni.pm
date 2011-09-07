@@ -19,50 +19,49 @@ Version 0.01
 our $VERSION = '0.01';
 
 has 'debug' => (
-    is       => 'rw',
-    isa      => 'Bool',
-    required => 1,
-    default  => 0,
+    is        => 'rw',
+    isa       => 'Bool',
+    required  => 1,
+    default   => 0,
     predicate => 'is_debug',
 );
 
 has 'hostname' => (
-    is => 'rw', 
-    isa => 'Str', 
+    is      => 'rw',
+    isa     => 'Str',
     default => hostname()
 );
 
 has 'repo' => (
-    is => 'rw', 
-    isa => 'Str', 
+    is       => 'rw',
+    isa      => 'Str',
     required => 1,
-    default => cwd(),
+    default  => cwd(),
 );
 
 has 'scm' => (
-    is => 'rw', 
-    isa => 'Str', 
+    is      => 'rw',
+    isa     => 'Str',
     default => 'git',
 );
 
 has 'role' => (
-    is => 'rw', 
-    isa => 'Str', 
+    is      => 'rw',
+    isa     => 'Str',
     default => 'web',
 );
 
 has 'deploy_to' => (
-    is => 'rw', 
-    isa => 'Str', 
+    is      => 'rw',
+    isa     => 'Str',
     default => '/var/www',
 );
 
 has 'user' => (
-    is => 'rw', 
-    isa => 'Str', 
+    is      => 'rw',
+    isa     => 'Str',
     default => 'deploy',
 );
-
 
 =head1 SYNOPSIS
 
@@ -87,10 +86,11 @@ if you don't export anything, such as for a purely object-oriented module.
 =cut
 
 sub deploy {
-    my ($self, $conf) = @_;
+    my ( $self, $conf ) = @_;
 
     # load SCM plugin
-    $self->load_plugin($self->scm);
+    $self->load_plugin( $self->scm );
+    my $tag = $self->tag();
 
 }
 
@@ -99,6 +99,12 @@ sub deploy {
 =cut
 
 sub rollback {
+    my ( $self, $conf, $offset ) = @_;
+
+    # load SCM plugin
+    $self->load_plugin( $self->scm );
+    my $tag = $self->get_last_tag($offset);
+    print STDERR "Rolling back to tag: $tag\n" if $self->is_debug;
 }
 
 =head2 restart
@@ -109,9 +115,9 @@ sub restart {
 }
 
 sub load_plugin {
-    my ($self, $plugin) = @_;
+    my ( $self, $plugin ) = @_;
 
-    my $plug = 'Giovanni::Plugins::'.ucfirst(lc($plugin));
+    my $plug = 'Giovanni::Plugins::' . ucfirst( lc($plugin) );
     print STDERR "Loading $plugin Plugin\n" if $self->is_debug;
     with($plug);
     return;
