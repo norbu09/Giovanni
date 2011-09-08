@@ -1,10 +1,14 @@
 package Giovanni;
 
 use 5.8.0;
-use Any::Moose;
+use Mouse;
+use Mouse::Util;
 use Net::OpenSSH;
 use Sys::Hostname;
 use Cwd;
+use Giovanni::Stages;
+
+extends 'Giovanni::Stages';
 
 =head1 NAME
 
@@ -43,12 +47,6 @@ has 'scm' => (
     is      => 'rw',
     isa     => 'Str',
     default => 'git',
-);
-
-has 'role' => (
-    is      => 'rw',
-    isa     => 'Str',
-    default => 'web',
 );
 
 has 'deploy_to' => (
@@ -90,8 +88,31 @@ sub deploy {
 
     # load SCM plugin
     $self->load_plugin( $self->scm );
-    my $tag = $self->tag();
+    #my $tag = $self->tag();
+    my @hosts = split(/\s*,\s*/, $conf->{hosts});
+    my $ssh;
+    foreach my $host (@hosts){
+        $ssh->{$host} = Net::OpenSSH->new( $host, async => 1 );
+        print "[$host] connected\n" unless $ssh->{$host}->error;
+    }
+    foreach my $host (@hosts){
+        $self->process_stages($ssh->{$host}, $conf);
+    }
 
+}
+
+sub process_stages {
+    my ($self, $ssh, $conf) = @_;
+
+    my @stages = split(/\s*,\s*/, $conf->{stages});
+    foreach my $stage (@stages){
+        print "[".$ssh->get_host."] running $stage\n";
+        #$self->load_plugin($stage);
+        $self->$stage($ssh, $conf);
+        if($@){
+            print STDERR "There were errors processing $stage!\n";
+        }
+    }
 }
 
 =head2 rollback
@@ -118,8 +139,18 @@ sub load_plugin {
     my ( $self, $plugin ) = @_;
 
     my $plug = 'Giovanni::Plugins::' . ucfirst( lc($plugin) );
-    print STDERR "Loading $plugin Plugin\n" if $self->is_debug;
-    with($plug);
+    unless(Mouse::Util::is_class_loaded($plug)){
+        print STDERR "Loading $plugin Plugin\n" if $self->is_debug;
+        with($plug); # or die "Could not load Plugin: '$plugin'\n";
+    }
+    return;
+}
+
+sub logger {
+    my ($self, $ssh, $log) = @_;
+
+    print STDERR "*log* [".$ssh->get_host. "] ";
+    print STDERR $log ."\n";
     return;
 }
 

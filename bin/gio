@@ -6,16 +6,16 @@ use feature 'switch';
 use Getopt::Long;
 use Pod::Usage;
 use Config::GitLike;
+use Data::Dumper;
 
 my $help;
 my $man;
 my $pid;
-my $conf  = '.giovanni.conf';
+my $conf  = 'giovanni.conf';
 my $debug = 0;
 my $offset;
 
 my $command = pop(@ARGV);
-pod2usage(2) unless $command;
 
 GetOptions(
     "offset|o=s"  => \$offset,
@@ -27,15 +27,30 @@ GetOptions(
 ) or pod2usage(2);
 pod2usage(1) if $help;
 pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
+pod1usage(2) unless $command;
 
 my $config = Config::GitLike->new( confname => $conf, cascade => 1 );
+$config->load();
 my $gio = Giovanni->new( debug => $debug );
 
 given ($command) {
-    when (/deploy/i)   { $gio->deploy($config); }
+    when (/deploy/i)   { deploy(); }
     when (/rollback/i) { $gio->rollback($config, $offset); }
     when (/restart/i)  { $gio->restart($config); }
     default            { print "Could not find command '$command'\n"; }
+}
+
+sub deploy {
+    my $dest = $config->get_regexp( key => 'deploy');
+    my $cnf;
+    foreach my $line (keys %{$dest}){
+        my ($_deploy, $name, $key) = split(/\./, $line);
+        $cnf->{$name}->{$key} = $dest->{$line};
+    }
+    foreach my $task (keys %{$cnf}){
+        print "{task} Running deploy for '$task'\n";
+        $gio->deploy($cnf->{$task});
+    }
 }
 
 =head1 AUTHOR
@@ -51,6 +66,21 @@ gio [options] [deploy|rollback|restart]
    --help|?          brief help message
    --debug|v         turn on debug output
    --man             full documentation
+
+=head1 CONFIG
+
+To configure a project to use Giovanni simply put a `.giovanni.conf`
+file in the root directory of your program. The syntax of the config
+looks like this:
+
+
+    [deploy "project_name"]
+        hosts = host.name, IP, ...
+        root = /base/path/to/project
+        init = /etc/init.d/project_name
+        stages = update_scm, rollout_timestamped, restart_phased, notify
+        repo = git://github.com/username/project_name.git
+        cache = /tmp/repo
 
 =head1 BUGS
 
