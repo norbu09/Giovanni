@@ -61,6 +61,12 @@ has 'user' => (
     default => 'deploy',
 );
 
+has 'version' => (
+    is      => 'rw',
+    isa     => 'Str',
+    default => 'v1',
+);
+
 =head1 SYNOPSIS
 
 Quick summary of what the module does.
@@ -88,7 +94,7 @@ sub deploy {
 
     # load SCM plugin
     $self->load_plugin( $self->scm );
-    #my $tag = $self->tag();
+    my $tag = $self->tag();
     my @hosts = split(/\s*,\s*/, $conf->{hosts});
     my $ssh;
     foreach my $host (@hosts){
@@ -107,11 +113,7 @@ sub process_stages {
     my @stages = split(/\s*,\s*/, $conf->{stages});
     foreach my $stage (@stages){
         print "[".$ssh->get_host."] running $stage\n";
-        #$self->load_plugin($stage);
         $self->$stage($ssh, $conf);
-        if($@){
-            print STDERR "There were errors processing $stage!\n";
-        }
     }
 }
 

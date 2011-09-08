@@ -21,6 +21,7 @@ sub tag {
     print STDERR "Pull: " . $log . "\n" if $self->is_debug;
     $log = $self->git->run( push => 'origin', '--tags' ) unless $self->is_debug;
     print STDERR "Push: " . $log . "\n" if $self->is_debug;
+    $self->version($tag);
     return $tag;
 }
 
@@ -33,7 +34,7 @@ sub get_last_tag {
     return splice( @tags, $n-1, $n );
 }
 
-around 'update_scm' => sub {
+around 'update_cache' => sub {
     my ($orig, $self, $ssh, $conf) = @_;
 
     my $log;
@@ -52,5 +53,17 @@ around 'update_scm' => sub {
     $self->logger($ssh, $log);
     return;
 };
+
+around 'checkout' => sub  {
+    my ($orig, $self, $ssh, $conf) = @_;
+    if($conf->{cache}){
+        $log = $ssh->capture("mkdir -p ".$conf->{cache})
+            if $ssh->test(if => "[ `file -b ".$conf->{cache}."` == \"directory\" ] ; then exit 1; fi");
+        $log .= $ssh->capture("git clone ".$conf->{repo}." $cache_dir" )
+            if $ssh->test(if => "[ `file -b ".$cache_dir."` == \"directory\" ] ; then exit 1; fi");
+        $log .= $ssh->capture("cd $cache_dir && git pull" )
+            unless $ssh->test(if => "[ `file -b ".$cache_dir."` == \"directory\" ] ; then exit 1; fi");
+    
+}
 
 __PACKAGE__

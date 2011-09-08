@@ -8,9 +8,9 @@ use Mouse;
 # (ie 1000s of stages in one file, not a good look) we may need to
 # rethink this approach.
 
-sub update_scm {
+sub update_cache {
     my ($self, $ssh, $conf) = @_;
-    print "[".$ssh->get_host."] running update_scm task ...\n";
+    print "[".$ssh->get_host."] running update_cache task ...\n";
     return;
 }
 
@@ -20,8 +20,11 @@ sub rollout {
     return;
 }
 
-sub rollout_timestamped {
+sub rollout_versioned {
     my ($self, $ssh, $conf) = @_;
+    $log = $ssh->capture("mkdir -p ".$conf->{root})
+        if $ssh->test(if => "[ `file -b ".$conf->{root}."` == \"directory\" ] ; then exit 1; fi");
+
     print "[".$ssh->get_host."] running rollout_timestamped task ...\n";
     return;
 }

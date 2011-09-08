@@ -78,7 +78,7 @@ looks like this:
         hosts = host.name, IP, ...
         root = /base/path/to/project
         init = /etc/init.d/project_name
-        stages = update_scm, rollout_timestamped, restart_phased, notify
+        stages = update_cache, rollout_timestamped, restart_phased, notify
         repo = git://github.com/username/project_name.git
         cache = /tmp/repo
 
