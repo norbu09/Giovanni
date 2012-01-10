@@ -7,6 +7,15 @@ license  'perl';
 
 build_requires 'Test::More';
 
+requires 'Config::GitLike';
+requires 'Mouse';
+requires 'Mouse::Util';
+requires 'Mouse::Role';
+requires 'Expect';
+requires 'Net::OpenSSH';
+requires 'Sys::Hostname';
+requires 'Git::Repository';
+
 auto_install;
 
 WriteAll;

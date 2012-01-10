@@ -1,4 +1,4 @@
-#!perl -T
+#!perl -T -Ilib
 
 use 5.006;
 use strict;
