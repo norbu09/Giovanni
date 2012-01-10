@@ -1,5 +1,9 @@
 Revision history for Giovanni
 
-0.01    Date/time
+0.2     2012-01-10T19:08:41
+        first version that actually does most of the stuff i need. we
+        have rollback and deploy - that covers the basics.
+
+0.01    2012-01-10T19:08:27
         First version, released on an unsuspecting world.
 
