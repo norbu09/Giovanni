@@ -20,7 +20,7 @@ Version 0.01
 
 =cut
 
-our $VERSION = '0.2';
+our $VERSION = '0.3';
 
 has 'debug' => (
     is        => 'rw',
