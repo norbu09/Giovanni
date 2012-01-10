@@ -34,7 +34,7 @@ $config->load();
 my $gio = Giovanni->new( debug => $debug );
 
 my $mode = shift;
-my $dest = $config->get_regexp( key => 'deploy' );
+my $dest = $config->get_regexp( key => 'project' );
 my $cnf;
 foreach my $line ( keys %{$dest} ) {
     my ( $_deploy, $name, $key ) = split( /\./, $line );

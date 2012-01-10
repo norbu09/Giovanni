@@ -103,15 +103,15 @@ sub deploy {
     my @hosts = split( /\s*,\s*/, $conf->{hosts} );
     my $ssh = $self->_get_ssh_conn($conf);
     foreach my $host (@hosts) {
-        $self->process_stages( $ssh->{$host}, $conf );
+        $self->process_stages( $ssh->{$host}, $conf, 'deploy' );
     }
 
 }
 
 sub process_stages {
-    my ( $self, $ssh, $conf ) = @_;
+    my ( $self, $ssh, $conf, $mode ) = @_;
 
-    my @stages = split( /\s*,\s*/, $conf->{stages} );
+    my @stages = split( /\s*,\s*/, $conf->{$mode} );
     foreach my $stage (@stages) {
         print "[" . $ssh->get_host . "] running $stage\n";
         $self->$stage( $ssh, $conf );
@@ -130,10 +130,7 @@ sub rollback {
     my @hosts = split( /\s*,\s*/, $conf->{hosts} );
     my $ssh = $self->_get_ssh_conn($conf);
     foreach my $host (@hosts) {
-        # TODO make the rollback dependent on the rollout mode
-        # (timestamped or SCM based in the actual directory)
-        $self->process_rollback_timestamped( $ssh->{$host}, $conf );
-        $self->restart_phased( $ssh->{$host}, $conf);
+        $self->process_stages( $ssh->{$host}, $conf, 'rollback' );
     }
 }
 

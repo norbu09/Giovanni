@@ -39,7 +39,7 @@ sub rollout_timestamped {
     return;
 }
 
-sub process_rollback_timestamped {
+sub rollback_timestamped {
     my ($self, $ssh, $conf, $offset) = @_;
     my $deploy_dir = join('/', $conf->{root}, 'releases');
     my $current = join('/', $conf->{root}, 'current');
@@ -69,7 +69,7 @@ sub process_rollback_timestamped {
     return;
 }
 
-sub process_rollback_scm {
+sub rollback_scm {
     my ( $self, $ssh, $conf, $offset ) = @_;
 
     # load SCM plugin
