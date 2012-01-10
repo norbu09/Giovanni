@@ -11,4 +11,5 @@ pm_to_blib*
 *.swp
 *.swo
 .shipit
-bin/dropbox
+.giovanni.conf
+ssh.test
