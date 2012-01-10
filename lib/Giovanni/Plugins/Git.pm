@@ -22,6 +22,7 @@ sub tag {
     $log = $self->git->run( push => 'origin', '--tags' ) unless $self->is_debug;
     print STDERR "Push: " . $log . "\n" if $self->is_debug;
     $self->version($tag);
+    #$self->logger($ssh, $log);
     return $tag;
 }
 
@@ -38,32 +39,37 @@ around 'update_cache' => sub {
     my ($orig, $self, $ssh, $conf) = @_;
 
     my $log;
-    my @parts = split(/\//, $conf->{repo});
-    my $git_dir = pop(@parts);
-    my $cache_dir = join('/', $conf->{cache}, $git_dir);
+    my $cache_dir = $self->_get_cache_dir($conf);
     if($conf->{cache}){
-        $log = $ssh->capture("mkdir -p ".$conf->{cache})
-            if $ssh->test(if => "[ `file -b ".$conf->{cache}."` == \"directory\" ] ; then exit 1; fi");
-        $log .= $ssh->capture("git clone ".$conf->{repo}." $cache_dir" )
-            if $ssh->test(if => "[ `file -b ".$cache_dir."` == \"directory\" ] ; then exit 1; fi");
-        $log .= $ssh->capture("cd $cache_dir && git pull" )
-            unless $ssh->test(if => "[ `file -b ".$cache_dir."` == \"directory\" ] ; then exit 1; fi");
+        if($ssh->test("[ -d ".$cache_dir." ]")){
+            $log .= $ssh->capture("cd $cache_dir && git pull" );
+            print "[".$ssh->get_host."] running git pull ...\n";
+        }else{
+            $log = $ssh->capture("mkdir -p ".$conf->{cache})
+                unless $ssh->test("[ -d ".$conf->{cache}." ]");
+            $log .= $ssh->capture("git clone ".$conf->{repo}." $cache_dir" );
+            print "[".$ssh->get_host."] running git clone ...\n";
+        }
     }
-    print "[".$ssh->get_host."] running git pull ...\n";
     $self->logger($ssh, $log);
     return;
 };
 
 around 'checkout' => sub  {
     my ($orig, $self, $ssh, $conf) = @_;
-    if($conf->{cache}){
-        $log = $ssh->capture("mkdir -p ".$conf->{cache})
-            if $ssh->test(if => "[ `file -b ".$conf->{cache}."` == \"directory\" ] ; then exit 1; fi");
-        $log .= $ssh->capture("git clone ".$conf->{repo}." $cache_dir" )
-            if $ssh->test(if => "[ `file -b ".$cache_dir."` == \"directory\" ] ; then exit 1; fi");
-        $log .= $ssh->capture("cd $cache_dir && git pull" )
-            unless $ssh->test(if => "[ `file -b ".$cache_dir."` == \"directory\" ] ; then exit 1; fi");
-    
+    my $log;
+    my $cache_dir = $self->_get_cache_dir($conf);
+    if($conf->{root}){
+        $log .= $ssh->capture("cd ".$conf->{root}." && git clone --depth 1 --no-hardlinks file://".$cache_dir." ." );
+    } 
+    $self->logger($ssh, $log);
+};
+
+sub _get_cache_dir {
+    my ($self, $conf) = @_;
+    my @parts = split(/\//, $conf->{repo});
+    my $git_dir = pop(@parts);
+    return join('/', $conf->{cache}, $git_dir);
 }
 
 __PACKAGE__

@@ -151,6 +151,8 @@ sub load_plugin {
 sub logger {
     my ($self, $ssh, $log) = @_;
 
+    return unless $log;
+    chomp($log);
     print STDERR "*log* [".$ssh->get_host. "] ";
     print STDERR $log ."\n";
     return;

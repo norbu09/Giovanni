@@ -1,6 +1,7 @@
 package Giovanni::Stages;
 
 use Mouse;
+use Expect;
 
 # Stages are defined here and expected to be overridden with plugins.
 # the idea is to have different plugins that can extend the existing
@@ -20,24 +21,42 @@ sub rollout {
     return;
 }
 
-sub rollout_versioned {
+sub rollout_timestamped {
     my ($self, $ssh, $conf) = @_;
-    $log = $ssh->capture("mkdir -p ".$conf->{root})
-        if $ssh->test(if => "[ `file -b ".$conf->{root}."` == \"directory\" ] ; then exit 1; fi");
 
+    my $deploy_dir = join('/', $conf->{root}, 'current', time);
+    my $log = $ssh->capture("mkdir -p ".$deploy_dir);
+    $conf->{root} = $deploy_dir;
     print "[".$ssh->get_host."] running rollout_timestamped task ...\n";
+    $self->logger($ssh, $log);
+    $self->checkout($ssh, $conf);
     return;
 }
 
 sub restart {
     my ($self, $ssh, $conf) = @_;
+    my ( $pty, $pid ) = $ssh->open2pty("sudo ".$conf->{init}." restart");
+    my $exp = Expect->init($pty);
+    $exp->interact();
     print "[".$ssh->get_host."] running restart task ...\n";
+    #$self->logger($ssh, $log);
     return;
 }
 
+sub checkout {
+    my ($self, $ssh, $conf) = @_;
+    print "[".$ssh->get_host."] running checkout task ...\n";
+    return;
+}
+
+
 sub restart_phased {
     my ($self, $ssh, $conf) = @_;
+    my ( $pty, $pid ) = $ssh->open2pty("sudo ".$conf->{init}." restart");
+    my $exp = Expect->init($pty);
+    $exp->interact();
     print "[".$ssh->get_host."] running restart_phased task ...\n";
+    #$self->logger($ssh, $log);
     return;
 }
 
