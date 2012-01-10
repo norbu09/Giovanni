@@ -33,24 +33,24 @@ my $config = Config::GitLike->new( confname => $conf, cascade => 1 );
 $config->load();
 my $gio = Giovanni->new( debug => $debug );
 
-given ($command) {
-    when (/deploy/i)   { deploy(); }
-    when (/rollback/i) { $gio->rollback($config, $offset); }
-    when (/restart/i)  { $gio->restart($config); }
-    default            { print "Could not find command '$command'\n"; }
+my $mode = shift;
+my $dest = $config->get_regexp( key => 'deploy' );
+my $cnf;
+foreach my $line ( keys %{$dest} ) {
+    my ( $_deploy, $name, $key ) = split( /\./, $line );
+    $cnf->{$name}->{$key} = $dest->{$line};
 }
-
-sub deploy {
-    my $dest = $config->get_regexp( key => 'deploy');
-    my $cnf;
-    foreach my $line (keys %{$dest}){
-        my ($_deploy, $name, $key) = split(/\./, $line);
-        $cnf->{$name}->{$key} = $dest->{$line};
-    }
-    foreach my $task (keys %{$cnf}){
-        print "{task} Running deploy for '$task'\n";
-        $gio->deploy($cnf->{$task});
-        die $gio->error if $gio->error;
+foreach my $task ( keys %{$cnf} ) {
+    given ($command) {
+        when ('deploy') {
+            print "{task} Running deploy for '$task'\n";
+            $gio->deploy( $cnf->{$task} );
+        }
+        when ('rollback') {
+            print "{task} Running rollback for '$task'\n";
+            $gio->rollback( $cnf->{$task}, $offset );
+        }
+        default { print "Could not find command '$command'\n"; }
     }
 }
 

@@ -2,6 +2,7 @@ package Giovanni::Stages;
 
 use Mouse;
 use Expect;
+use Data::Dumper;
 
 # Stages are defined here and expected to be overridden with plugins.
 # the idea is to have different plugins that can extend the existing
@@ -18,18 +19,65 @@ sub update_cache {
 sub rollout {
     my ($self, $ssh, $conf) = @_;
     print "[".$ssh->get_host."] running rollout task ...\n";
+    my $log = $ssh->capture("mkdir -p ".$conf->{root});
+    $self->logger($ssh, $log);
+    $self->checkout($ssh, $conf);
     return;
 }
 
 sub rollout_timestamped {
     my ($self, $ssh, $conf) = @_;
 
-    my $deploy_dir = join('/', $conf->{root}, 'current', time);
+    my $deploy_dir = join('/', $conf->{root}, 'releases', time);
+    my $current = join('/', $conf->{root}, 'current');
     my $log = $ssh->capture("mkdir -p ".$deploy_dir);
+    $log .= $ssh->capture("unlink ".$current."; ln -s ".$deploy_dir." ".$current);
     $conf->{root} = $deploy_dir;
     print "[".$ssh->get_host."] running rollout_timestamped task ...\n";
     $self->logger($ssh, $log);
     $self->checkout($ssh, $conf);
+    return;
+}
+
+sub process_rollback_timestamped {
+    my ($self, $ssh, $conf, $offset) = @_;
+    my $deploy_dir = join('/', $conf->{root}, 'releases');
+    my $current = join('/', $conf->{root}, 'current');
+    print "[".$ssh->get_host."] running rollback task ...\n";
+    my @rels = $ssh->capture("ls -1 ".$deploy_dir);
+    @rels = sort(@rels);
+    my $link = $ssh->capture("ls -l ".$current." | sed 's/^.*->\\s*//'");
+    my @path = split(/\//, $link);
+    my $current_rel = pop(@path);
+    my (@past, @future);
+    foreach my $rel (@rels){
+        chomp($rel);
+        next unless $rel =~ m{^\w};
+        if($rel == $current_rel){
+            push(@future, $rel);
+            next;
+        }
+        if(@future){
+            push(@future, $rel);
+        } else {
+            push(@past, $rel);
+        }
+    }
+    $deploy_dir = join('/', $conf->{root}, pop(@past));
+    my $log = $ssh->capture("unlink ".$current."; ln -s ".$deploy_dir." ".$current);
+    $self->logger($ssh, $log);
+    return;
+}
+
+sub process_rollback_scm {
+    my ( $self, $ssh, $conf, $offset ) = @_;
+
+    # load SCM plugin
+    $self->load_plugin( $self->scm );
+    my $tag = $self->get_last_tag($offset);
+    print STDERR "Rolling back to tag: $tag\n" if $self->is_debug;
+    # TODO change checkout to accept an optional tag so we can reuse it
+    # here to check out an old version.
     return;
 }
 
@@ -39,7 +87,7 @@ sub restart {
     my $exp = Expect->init($pty);
     my $ret = $exp->interact();
     print "[".$ssh->get_host."] running restart task ...\n";
-    #$self->logger($ssh, $log);
+    $self->logger($ssh, "restarted ...");
     return;
 }
 
@@ -56,7 +104,7 @@ sub restart_phased {
     my $exp = Expect->init($pty);
     $exp->interact();
     print "[".$ssh->get_host."] running restart_phased task ...\n";
-    #$self->logger($ssh, $log);
+    $self->logger($ssh, "restarted ...");
     return;
 }
 

@@ -101,11 +101,7 @@ sub deploy {
     $self->load_plugin( $self->scm );
     my $tag = $self->tag();
     my @hosts = split( /\s*,\s*/, $conf->{hosts} );
-    my $ssh;
-    foreach my $host (@hosts) {
-        $ssh->{$host} = Net::OpenSSH->new( $host, async => 1 );
-        print "[$host] connected\n" unless $ssh->{$host}->error;
-    }
+    my $ssh = $self->_get_ssh_conn($conf);
     foreach my $host (@hosts) {
         $self->process_stages( $ssh->{$host}, $conf );
     }
@@ -119,6 +115,8 @@ sub process_stages {
     foreach my $stage (@stages) {
         print "[" . $ssh->get_host . "] running $stage\n";
         $self->$stage( $ssh, $conf );
+        # TODO we need a robust error handling here
+        die $self->error if $self->error;
     }
 }
 
@@ -129,10 +127,30 @@ sub process_stages {
 sub rollback {
     my ( $self, $conf, $offset ) = @_;
 
-    # load SCM plugin
-    $self->load_plugin( $self->scm );
-    my $tag = $self->get_last_tag($offset);
-    print STDERR "Rolling back to tag: $tag\n" if $self->is_debug;
+    my @hosts = split( /\s*,\s*/, $conf->{hosts} );
+    my $ssh = $self->_get_ssh_conn($conf);
+    foreach my $host (@hosts) {
+        # TODO make the rollback dependent on the rollout mode
+        # (timestamped or SCM based in the actual directory)
+        $self->process_rollback_timestamped( $ssh->{$host}, $conf );
+        $self->restart_phased( $ssh->{$host}, $conf);
+    }
+}
+
+sub _get_ssh_conn {
+    my ($self, $conf) = @_;
+
+    my @hosts = split( /\s*,\s*/, $conf->{hosts} );
+    my $ssh;
+    foreach my $host (@hosts) {
+        my $conn = $host;
+        if($conf->{ssh_user}){
+            $conn = $conf->{ssh_user}.'@'.$host;
+        }
+        $ssh->{$host} = Net::OpenSSH->new( $conn, async => 1 );
+        print "[$host] connected\n" unless $ssh->{$host}->error;
+    }
+    return $ssh;
 }
 
 =head2 restart
