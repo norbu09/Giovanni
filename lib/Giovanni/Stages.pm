@@ -37,7 +37,7 @@ sub restart {
     my ($self, $ssh, $conf) = @_;
     my ( $pty, $pid ) = $ssh->open2pty("sudo ".$conf->{init}." restart");
     my $exp = Expect->init($pty);
-    $exp->interact();
+    my $ret = $exp->interact();
     print "[".$ssh->get_host."] running restart task ...\n";
     #$self->logger($ssh, $log);
     return;

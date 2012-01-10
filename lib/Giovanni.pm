@@ -1,6 +1,6 @@
 package Giovanni;
 
-use 5.8.0;
+use 5.10.1;
 use Mouse;
 use Mouse::Util;
 use Net::OpenSSH;
@@ -67,6 +67,11 @@ has 'version' => (
     default => 'v1',
 );
 
+has 'error' => (
+    is      => 'rw',
+    isa     => 'Str',
+);
+
 =head1 SYNOPSIS
 
 Quick summary of what the module does.
@@ -95,25 +100,25 @@ sub deploy {
     # load SCM plugin
     $self->load_plugin( $self->scm );
     my $tag = $self->tag();
-    my @hosts = split(/\s*,\s*/, $conf->{hosts});
+    my @hosts = split( /\s*,\s*/, $conf->{hosts} );
     my $ssh;
-    foreach my $host (@hosts){
+    foreach my $host (@hosts) {
         $ssh->{$host} = Net::OpenSSH->new( $host, async => 1 );
         print "[$host] connected\n" unless $ssh->{$host}->error;
     }
-    foreach my $host (@hosts){
-        $self->process_stages($ssh->{$host}, $conf);
+    foreach my $host (@hosts) {
+        $self->process_stages( $ssh->{$host}, $conf );
     }
 
 }
 
 sub process_stages {
-    my ($self, $ssh, $conf) = @_;
+    my ( $self, $ssh, $conf ) = @_;
 
-    my @stages = split(/\s*,\s*/, $conf->{stages});
-    foreach my $stage (@stages){
-        print "[".$ssh->get_host."] running $stage\n";
-        $self->$stage($ssh, $conf);
+    my @stages = split( /\s*,\s*/, $conf->{stages} );
+    foreach my $stage (@stages) {
+        print "[" . $ssh->get_host . "] running $stage\n";
+        $self->$stage( $ssh, $conf );
     }
 }
 
@@ -141,20 +146,25 @@ sub load_plugin {
     my ( $self, $plugin ) = @_;
 
     my $plug = 'Giovanni::Plugins::' . ucfirst( lc($plugin) );
-    unless(Mouse::Util::is_class_loaded($plug)){
+    unless ( Mouse::Util::is_class_loaded($plug) ) {
         print STDERR "Loading $plugin Plugin\n" if $self->is_debug;
-        with($plug); # or die "Could not load Plugin: '$plugin'\n";
+        with($plug);    # or die "Could not load Plugin: '$plugin'\n";
     }
     return;
 }
 
 sub logger {
-    my ($self, $ssh, $log) = @_;
+    my ( $self, $host, $log ) = @_;
 
     return unless $log;
+    my $name;
+    given ($host) {
+        when ( ref $host eq 'SCALAR' ) { $name = $host; }
+        default { $name = $host->get_host; }
+    }
     chomp($log);
-    print STDERR "*log* [".$ssh->get_host. "] ";
-    print STDERR $log ."\n";
+    print STDERR "*log* [" . $name . "] ";
+    print STDERR $log . "\n";
     return;
 }
 

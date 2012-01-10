@@ -50,6 +50,7 @@ sub deploy {
     foreach my $task (keys %{$cnf}){
         print "{task} Running deploy for '$task'\n";
         $gio->deploy($cnf->{$task});
+        die $gio->error if $gio->error;
     }
 }
 

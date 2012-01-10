@@ -22,7 +22,7 @@ sub tag {
     $log = $self->git->run( push => 'origin', '--tags' ) unless $self->is_debug;
     print STDERR "Push: " . $log . "\n" if $self->is_debug;
     $self->version($tag);
-    #$self->logger($ssh, $log);
+    $self->logger('localhost', $log);
     return $tag;
 }
 
