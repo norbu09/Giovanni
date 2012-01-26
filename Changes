@@ -1,5 +1,8 @@
 Revision history for Giovanni
 
+0.4     2012-01-27T12:54:31
+        added a cleanup task for timestamped deployment
+
 0.3     2012-01-10T22:10:01
         config file change
         - rollback is a stages process like rollout

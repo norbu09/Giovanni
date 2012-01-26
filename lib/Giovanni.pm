@@ -16,11 +16,11 @@ Giovanni - The great new Giovanni!
 
 =head1 VERSION
 
-Version 0.01
+Version 0.4.4.01
 
 =cut
 
-our $VERSION = '0.3';
+our $VERSION = '0.4';
 
 has 'debug' => (
     is        => 'rw',
