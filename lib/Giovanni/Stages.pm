@@ -97,6 +97,48 @@ sub checkout {
     return;
 }
 
+sub cleanup_timestamped {
+    my ($self, $ssh, $conf, $offset) = @_;
+    print STDERR "PATH: ".$conf->{root}."\n";
+    if($conf->{root} =~ m{^.*/\d+$}){
+        my @path = split(/\//, $conf->{root});
+        pop(@path);
+        pop(@path);
+        $conf->{root} = join('/', @path);
+    }
+    print STDERR "PATH2: ".$conf->{root}."\n";
+    my $deploy_dir = join('/', $conf->{root}, 'releases');
+    my $current = join('/', $conf->{root}, 'current');
+    print "[".$ssh->get_host."] running cleanup task ...\n";
+    my @rels = $ssh->capture("ls -1 ".$deploy_dir);
+    @rels = sort(@rels);
+    my $link = $ssh->capture("ls -l ".$current." | sed 's/^.*->\\s*//'");
+    my @path = split(/\//, $link);
+    my $current_rel = pop(@path);
+    my (@past, @future);
+    foreach my $rel (@rels){
+        chomp($rel);
+        next unless $rel =~ m{^\w};
+        if($rel == $current_rel){
+            push(@future, $rel);
+            next;
+        }
+        if(@future){
+            push(@future, $rel);
+        } else {
+            push(@past, $rel);
+        }
+    }
+    $deploy_dir = join('/', $conf->{root}, pop(@past));
+    my $num = $conf->{keep_versions} || 5;
+    my $log;
+    while($#past > ($num)){
+        my $to_del = join('/', $conf->{root}, 'releases', shift(@past));
+        $log = $ssh->capture("rm -rf ".$to_del);
+    }
+    $self->logger($ssh, $log);
+    return;
+}
 
 sub restart_phased {
     my ($self, $ssh, $conf) = @_;
