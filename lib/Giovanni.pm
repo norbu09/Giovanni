@@ -16,11 +16,11 @@ Giovanni - The great new Giovanni!
 
 =head1 VERSION
 
-Version 0.3
+Version 0.4
 
 =cut
 
-our $VERSION = '0.3';
+our $VERSION = '0.4';
 
 has 'debug' => (
     is        => 'rw',
@@ -33,8 +33,7 @@ has 'debug' => (
 has 'hostname' => (
     is      => 'rw',
     isa     => 'Str',
-    default => hostname()
-);
+    default => hostname());
 
 has 'repo' => (
     is       => 'rw',
@@ -68,8 +67,8 @@ has 'version' => (
 );
 
 has 'error' => (
-    is      => 'rw',
-    isa     => 'Str',
+    is  => 'rw',
+    isa => 'Str',
 );
 
 =head1 SYNOPSIS
@@ -95,26 +94,27 @@ if you don't export anything, such as for a purely object-oriented module.
 =cut
 
 sub deploy {
-    my ( $self, $conf ) = @_;
+    my ($self, $conf) = @_;
 
     # load SCM plugin
-    $self->load_plugin( $self->scm );
-    my $tag = $self->tag();
-    my @hosts = split( /\s*,\s*/, $conf->{hosts} );
-    my $ssh = $self->_get_ssh_conn($conf);
+    $self->load_plugin($self->scm);
+    my $tag   = $self->tag();
+    my @hosts = split(/\s*,\s*/, $conf->{hosts});
+    my $ssh   = $self->_get_ssh_conn($conf);
     foreach my $host (@hosts) {
-        $self->process_stages( $ssh->{$host}, $conf, 'deploy' );
+        $self->process_stages($ssh->{$host}, $conf, 'deploy');
     }
 
 }
 
 sub process_stages {
-    my ( $self, $ssh, $conf, $mode ) = @_;
+    my ($self, $ssh, $conf, $mode) = @_;
 
-    my @stages = split( /\s*,\s*/, $conf->{$mode} );
+    my @stages = split(/\s*,\s*/, $conf->{$mode});
     foreach my $stage (@stages) {
         print "[" . $ssh->get_host . "] running $stage\n";
-        $self->$stage( $ssh, $conf );
+        $self->$stage($ssh, $conf);
+
         # TODO we need a robust error handling here
         die $self->error if $self->error;
     }
@@ -125,26 +125,26 @@ sub process_stages {
 =cut
 
 sub rollback {
-    my ( $self, $conf, $offset ) = @_;
+    my ($self, $conf, $offset) = @_;
 
-    my @hosts = split( /\s*,\s*/, $conf->{hosts} );
+    my @hosts = split(/\s*,\s*/, $conf->{hosts});
     my $ssh = $self->_get_ssh_conn($conf);
     foreach my $host (@hosts) {
-        $self->process_stages( $ssh->{$host}, $conf, 'rollback' );
+        $self->process_stages($ssh->{$host}, $conf, 'rollback');
     }
 }
 
 sub _get_ssh_conn {
     my ($self, $conf) = @_;
 
-    my @hosts = split( /\s*,\s*/, $conf->{hosts} );
+    my @hosts = split(/\s*,\s*/, $conf->{hosts});
     my $ssh;
     foreach my $host (@hosts) {
         my $conn = $host;
-        if($conf->{ssh_user}){
-            $conn = $conf->{ssh_user}.'@'.$host;
+        if ($conf->{ssh_user}) {
+            $conn = $conf->{ssh_user} . '@' . $host;
         }
-        $ssh->{$host} = Net::OpenSSH->new( $conn, async => 1 );
+        $ssh->{$host} = Net::OpenSSH->new($conn, async => 1);
         print "[$host] connected\n" unless $ssh->{$host}->error;
     }
     return $ssh;
@@ -158,10 +158,10 @@ sub restart {
 }
 
 sub load_plugin {
-    my ( $self, $plugin ) = @_;
+    my ($self, $plugin) = @_;
 
-    my $plug = 'Giovanni::Plugins::' . ucfirst( lc($plugin) );
-    unless ( Mouse::Util::is_class_loaded($plug) ) {
+    my $plug = 'Giovanni::Plugins::' . ucfirst(lc($plugin));
+    unless (Mouse::Util::is_class_loaded($plug)) {
         print STDERR "Loading $plugin Plugin\n" if $self->is_debug;
         with($plug);    # or die "Could not load Plugin: '$plugin'\n";
     }
@@ -169,12 +169,12 @@ sub load_plugin {
 }
 
 sub logger {
-    my ( $self, $host, $log ) = @_;
+    my ($self, $host, $log) = @_;
 
     return unless $log;
     my $name;
     given ($host) {
-        when ( ref $host eq 'SCALAR' ) { $name = $host; }
+        when (ref $host eq 'SCALAR') { $name = $host; }
         default { $name = $host->get_host; }
     }
     chomp($log);
