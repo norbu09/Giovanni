@@ -16,11 +16,11 @@ Giovanni - The great new Giovanni!
 
 =head1 VERSION
 
-Version 0.5.4
+Version 0.6
 
 =cut
 
-our $VERSION = '0.5';
+our $VERSION = '0.6';
 
 has 'debug' => (
     is        => 'rw',
@@ -116,7 +116,7 @@ sub process_stages {
         $self->$stage($ssh, $conf);
 
         # TODO we need a robust error handling here
-        die $self->error if $self->error;
+        confess $self->error if $self->error;
     }
 }
 
@@ -145,7 +145,13 @@ sub _get_ssh_conn {
             $conn = $conf->{ssh_user} . '@' . $host;
         }
         $ssh->{$host} = Net::OpenSSH->new($conn, async => 1);
-        print "[$host] connected\n" unless $ssh->{$host}->error;
+    }
+
+    # trigger noop command to check for connection
+    foreach my $host (@hosts) {
+        $ssh->{$host}->system('echo')
+            or confess "could not connect to $host: " . $ssh->{$host}->error;
+        print "[$host] connected\n";
     }
     return $ssh;
 }
@@ -163,7 +169,7 @@ sub load_plugin {
     my $plug = 'Giovanni::Plugins::' . ucfirst(lc($plugin));
     unless (Mouse::Util::is_class_loaded($plug)) {
         print STDERR "Loading $plugin Plugin\n" if $self->is_debug;
-        with($plug);    # or die "Could not load Plugin: '$plugin'\n";
+        with($plug);    # or confess "Could not load Plugin: '$plugin'\n";
     }
     return;
 }
