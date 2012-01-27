@@ -11,13 +11,15 @@ inc/Module/Install/Fetch.pm
 inc/Module/Install/Include.pm
 inc/Module/Install/Makefile.pm
 inc/Module/Install/Metadata.pm
+inc/Module/Install/Scripts.pm
 inc/Module/Install/Win32.pm
 inc/Module/Install/WriteAll.pm
+inc/Module/Install.pm
 lib/Giovanni.pm
 lib/Giovanni/Stages.pm
 lib/Giovanni/Plugins/Git.pm
 Makefile.PL
-MANIFEST			This list of files
+MANIFEST
 MANIFEST.SKIP
 README
 t/00-load.t
