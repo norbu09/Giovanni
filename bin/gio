@@ -7,40 +7,34 @@ use Giovanni;
 use Getopt::Long;
 use Pod::Usage;
 use Config::GitLike;
-use Data::Dumper;
 
 my $help;
 my $man;
-my $pid;
-my $conf  = 'giovanni.conf';
+my $conf  = '.giovanni.conf';
 my $debug = 0;
 my $offset;
 
-my $command = pop(@ARGV);
-
 GetOptions(
-    "offset|o=s"  => \$offset,
-    "config|c=s"  => \$conf,
-    "pidfile|p=s" => \$pid,
-    'help|?'      => \$help,
-    'debug|v'     => \$debug,
-    "man"         => \$man,
+    "offset|o=s" => \$offset,
+    "config|c=s" => \$conf,
+    "help|h"     => \$help,
+    "debug|d"    => \$debug,
+    "man"        => \$man,
 ) or pod2usage(2);
 pod2usage(1) if $help;
 pod2usage(-exitstatus => 0, -verbose => 2) if $man;
-pod1usage(2) unless $command;
 
-my $config = Config::GitLike->new(confname => $conf, cascade => 1);
-$config->load();
-my $gio = Giovanni->new(debug => $debug);
+my $command = pop(@ARGV);
+pod2usage(2) unless $command;
 
-my $mode = shift;
-my $dest = $config->get_regexp(key => 'project');
+my $config = Config::GitLike->load_file($conf);
 my $cnf;
-foreach my $line (keys %{$dest}) {
-    my ($_deploy, $name, $key) = split(/\./, $line);
-    $cnf->{$name}->{$key} = $dest->{$line};
+foreach my $line (keys %{$config}) {
+    my (undef, $name, $key) = split(/\./, $line);
+    $cnf->{$name}->{$key} = $config->{$line};
 }
+
+my $gio = Giovanni->new(debug => $debug);
 foreach my $task (keys %{$cnf}) {
     given ($command) {
         when ('deploy') {
@@ -65,8 +59,9 @@ gio [options] [deploy|rollback|restart]
 
  Options:
    --config|c        config file to use
-   --help|?          brief help message
-   --debug|v         turn on debug output
+   --offset|o        offset to start from in stage list
+   --help|h          brief help message
+   --debug|d         turn on debug output
    --man             full documentation
 
 =head1 CONFIG
@@ -77,12 +72,13 @@ looks like this:
 
 
     [deploy "project_name"]
-        hosts = host.name, IP, ...
-        root = /base/path/to/project
-        init = /etc/init.d/project_name
+        hosts  = host.name, IP, ...
+        root   = /base/path/to/project
+        init   = /etc/init.d/project_name
         stages = update_cache, rollout_timestamped, restart_phased, notify
-        repo = git://github.com/username/project_name.git
-        cache = /tmp/repo
+        repo   = git://github.com/username/project_name.git
+        cache  = /tmp/repo
+        user   = deploy
 
 =head1 BUGS
 
