@@ -141,9 +141,7 @@ sub _get_ssh_conn {
     my $ssh;
     foreach my $host (@hosts) {
         my $conn = $host;
-        if ($conf->{ssh_user}) {
-            $conn = $conf->{ssh_user} . '@' . $host;
-        }
+        $conn = ($conf->{user} || $self->user) . '@' . $host;
         $ssh->{$host} = Net::OpenSSH->new($conn, async => 1);
     }
 
