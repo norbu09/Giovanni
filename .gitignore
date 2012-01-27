@@ -1,15 +1,1 @@
-blib*
-Makefile
-Makefile.old
-MANIFEST.SKIP
-Build
-_build*
-pm_to_blib*
-*.tar.gz
-.lwpcookies
-.vimbk
-*.swp
-*.swo
-.shipit
-.giovanni.conf
-ssh.test
+ignore.txt

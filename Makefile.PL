@@ -18,5 +18,7 @@ requires 'Git::Repository';
 
 auto_install;
 
+install_script 'bin/gio';
+
 WriteAll;
 

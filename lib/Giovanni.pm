@@ -1,6 +1,6 @@
 package Giovanni;
 
-use 5.10.1;
+use 5.010;
 use Mouse;
 use Mouse::Util;
 use Net::OpenSSH;
@@ -16,7 +16,7 @@ Giovanni - The great new Giovanni!
 
 =head1 VERSION
 
-Version 0.01
+Version 0.3
 
 =cut
 
