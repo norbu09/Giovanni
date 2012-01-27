@@ -1,8 +1,9 @@
-#!/usr/bin/perl -Ilib
+#!/usr/bin/env perl
 
+use 5.010;
 use strict;
+use warnings;
 use Giovanni;
-use feature 'switch';
 use Getopt::Long;
 use Pod::Usage;
 use Config::GitLike;
@@ -26,29 +27,29 @@ GetOptions(
     "man"         => \$man,
 ) or pod2usage(2);
 pod2usage(1) if $help;
-pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
+pod2usage(-exitstatus => 0, -verbose => 2) if $man;
 pod1usage(2) unless $command;
 
-my $config = Config::GitLike->new( confname => $conf, cascade => 1 );
+my $config = Config::GitLike->new(confname => $conf, cascade => 1);
 $config->load();
-my $gio = Giovanni->new( debug => $debug );
+my $gio = Giovanni->new(debug => $debug);
 
 my $mode = shift;
-my $dest = $config->get_regexp( key => 'project' );
+my $dest = $config->get_regexp(key => 'project');
 my $cnf;
-foreach my $line ( keys %{$dest} ) {
-    my ( $_deploy, $name, $key ) = split( /\./, $line );
+foreach my $line (keys %{$dest}) {
+    my ($_deploy, $name, $key) = split(/\./, $line);
     $cnf->{$name}->{$key} = $dest->{$line};
 }
-foreach my $task ( keys %{$cnf} ) {
+foreach my $task (keys %{$cnf}) {
     given ($command) {
         when ('deploy') {
             print "{task} Running deploy for '$task'\n";
-            $gio->deploy( $cnf->{$task} );
+            $gio->deploy($cnf->{$task});
         }
         when ('rollback') {
             print "{task} Running rollback for '$task'\n";
-            $gio->rollback( $cnf->{$task}, $offset );
+            $gio->rollback($cnf->{$task}, $offset);
         }
         default { print "Could not find command '$command'\n"; }
     }
