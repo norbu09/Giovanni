@@ -16,6 +16,7 @@ requires 'Expect';
 requires 'Net::OpenSSH';
 requires 'Sys::Hostname';
 requires 'Git::Repository';
+requires 'IO::Stty';
 
 auto_install;
 
