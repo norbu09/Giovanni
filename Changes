@@ -1,5 +1,8 @@
 Revision history for Giovanni
 
+0.5     2012-01-27T13:27:41
+        install gio into local bin [lev]
+
 0.4     2012-01-27T12:54:31
         added a cleanup task for timestamped deployment
 
