@@ -1,21 +1,25 @@
 Revision history for Giovanni
 
+0.7     2012-02-09T16:04:59
+        fixed loads of things that were only drafts and never really
+        worked [lev]
+
 0.5     2012-01-27T13:27:41
         install gio into local bin [lev]
 
 0.4     2012-01-27T12:54:31
-        added a cleanup task for timestamped deployment
+        added a cleanup task for timestamped deployment [lenz]
 
 0.3     2012-01-10T22:10:01
-        config file change
+        config file change [lenz]
         - rollback is a stages process like rollout
         - the config file syntax had to be adapted to the new
           functionality
 
 0.2     2012-01-10T19:08:41
         first version that actually does most of the stuff i need. we
-        have rollback and deploy - that covers the basics.
+        have rollback and deploy - that covers the basics. [lenz]
 
 0.01    2012-01-10T19:08:27
-        First version, released on an unsuspecting world.
+        First version, released on an unsuspecting world. [lenz]
 
