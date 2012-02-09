@@ -16,11 +16,11 @@ Giovanni - The great new Giovanni!
 
 =head1 VERSION
 
-Version 0.6
+Version 0.7
 
 =cut
 
-our $VERSION = '0.6';
+our $VERSION = '0.7';
 
 has 'debug' => (
     is        => 'rw',
@@ -33,7 +33,8 @@ has 'debug' => (
 has 'hostname' => (
     is      => 'rw',
     isa     => 'Str',
-    default => hostname());
+    default => hostname(),
+);
 
 has 'repo' => (
     is       => 'rw',
@@ -71,6 +72,11 @@ has 'error' => (
     isa => 'Str',
 );
 
+has 'config' => (
+    is       => 'rw',
+    required => 1,
+);
+
 =head1 SYNOPSIS
 
 Quick summary of what the module does.
@@ -94,30 +100,13 @@ if you don't export anything, such as for a purely object-oriented module.
 =cut
 
 sub deploy {
-    my ($self, $conf) = @_;
+    my ($self) = @_;
 
     # load SCM plugin
     $self->load_plugin($self->scm);
-    my $tag   = $self->tag();
-    my @hosts = split(/\s*,\s*/, $conf->{hosts});
-    my $ssh   = $self->_get_ssh_conn($conf);
-    foreach my $host (@hosts) {
-        $self->process_stages($ssh->{$host}, $conf, 'deploy');
-    }
-
-}
-
-sub process_stages {
-    my ($self, $ssh, $conf, $mode) = @_;
-
-    my @stages = split(/\s*,\s*/, $conf->{$mode});
-    foreach my $stage (@stages) {
-        print "[" . $ssh->get_host . "] running $stage\n";
-        $self->$stage($ssh, $conf);
-
-        # TODO we need a robust error handling here
-        confess $self->error if $self->error;
-    }
+    my $tag = $self->tag();
+    my $ssh = $self->_get_ssh_conn;
+    $self->process_stages($ssh, 'deploy');
 }
 
 =head2 rollback
@@ -125,31 +114,54 @@ sub process_stages {
 =cut
 
 sub rollback {
-    my ($self, $conf, $offset) = @_;
+    my ($self, $offset) = @_;
 
-    my @hosts = split(/\s*,\s*/, $conf->{hosts});
-    my $ssh = $self->_get_ssh_conn($conf);
+    my $ssh = $self->_get_ssh_conn;
+    $self->process_stages($ssh, 'rollback');
+}
+
+sub process_stages {
+    my ($self, $ssh, $mode) = @_;
+
+    my @stages = split(/\s*,\s*/, $self->config->{$mode});
+    foreach my $stage (@stages) {
+        $self->process_hosts($ssh, $stage, $mode);
+
+        # if one host produced an error while restarting, rollback all
+        if ($self->error and ($stage =~ m/^restart/i) and ($mode eq 'deploy')) {
+            $self->log('ERROR', $self->error);
+            $self->process_stages($ssh, 'rollback');
+            return;
+        }
+    }
+}
+
+sub process_hosts {
+    my ($self, $ssh, $stage, $mode) = @_;
+
+    my @hosts = split(/\s*,\s*/, $self->config->{hosts});
     foreach my $host (@hosts) {
-        $self->process_stages($ssh->{$host}, $conf, 'rollback');
+        $self->log($ssh->{$host}, "running $stage");
+        $self->$stage($ssh->{$host});
     }
 }
 
 sub _get_ssh_conn {
-    my ($self, $conf) = @_;
+    my ($self) = @_;
 
-    my @hosts = split(/\s*,\s*/, $conf->{hosts});
+    my @hosts = split(/\s*,\s*/, $self->config->{hosts});
     my $ssh;
     foreach my $host (@hosts) {
         my $conn = $host;
-        $conn = ($conf->{user} || $self->user) . '@' . $host;
+        $conn = ($self->config->{user} || $self->user) . '@' . $host;
         $ssh->{$host} = Net::OpenSSH->new($conn, async => 1);
     }
 
     # trigger noop command to check for connection
     foreach my $host (@hosts) {
-        $ssh->{$host}->system('echo')
+        $ssh->{$host}->test('echo')
             or confess "could not connect to $host: " . $ssh->{$host}->error;
-        print "[$host] connected\n";
+        $self->log($host, 'connected');
     }
     return $ssh;
 }
@@ -169,21 +181,23 @@ sub load_plugin {
         print STDERR "Loading $plugin Plugin\n" if $self->is_debug;
         with($plug);    # or confess "Could not load Plugin: '$plugin'\n";
     }
+
     return;
 }
 
-sub logger {
+sub log {
     my ($self, $host, $log) = @_;
 
     return unless $log;
+
     my $name;
     given ($host) {
-        when (ref $host eq 'SCALAR') { $name = $host; }
-        default { $name = $host->get_host; }
+        when (ref $host eq 'Net::OpenSSH') { $name = $host->get_host; }
+        default { $name = $host; }
     }
     chomp($log);
-    print STDERR "*log* [" . $name . "] ";
-    print STDERR $log . "\n";
+    print STDERR "[" . $name . "] " . $log . $/;
+
     return;
 }
 

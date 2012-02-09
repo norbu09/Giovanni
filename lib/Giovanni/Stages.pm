@@ -11,149 +11,178 @@ use Data::Dumper;
 # rethink this approach.
 
 sub update_cache {
-    my ($self, $ssh, $conf) = @_;
-    print "[".$ssh->get_host."] running update_cache task ...\n";
+    my ($self, $ssh) = @_;
+    $self->log($ssh, "running update_cache task ...");
     return;
 }
 
 sub rollout {
-    my ($self, $ssh, $conf) = @_;
-    print "[".$ssh->get_host."] running rollout task ...\n";
-    my $log = $ssh->capture("mkdir -p ".$conf->{root});
-    $self->logger($ssh, $log);
-    $self->checkout($ssh, $conf);
+    my ($self, $ssh) = @_;
+
+    $self->log($ssh, "running rollout task ...");
+    $self->config->{deploy_dir} = $self->config->{root};
+    my $log = $ssh->capture("mkdir -p " . $self->config->{deploy_dir});
+    $self->log($ssh, $log);
+    $self->checkout($ssh);
+
     return;
 }
 
 sub rollout_timestamped {
-    my ($self, $ssh, $conf) = @_;
+    my ($self, $ssh) = @_;
 
-    my $deploy_dir = join('/', $conf->{root}, 'releases', time);
-    my $current = join('/', $conf->{root}, 'current');
-    my $log = $ssh->capture("mkdir -p ".$deploy_dir);
-    $log .= $ssh->capture("unlink ".$current."; ln -s ".$deploy_dir." ".$current);
-    $conf->{root} = $deploy_dir;
-    print "[".$ssh->get_host."] running rollout_timestamped task ...\n";
-    $self->logger($ssh, $log);
-    $self->checkout($ssh, $conf);
+    $self->log($ssh, "running rollout_timestamped task ...");
+    my $deploy_dir = join('/', $self->config->{root}, 'releases', time);
+    my $current = join('/', $self->config->{root}, 'current');
+    my $log = $ssh->capture("mkdir -p " . $deploy_dir);
+    $log .= $ssh->capture(
+        "unlink " . $current . "; ln -s " . $deploy_dir . " " . $current);
+    $self->config->{deploy_dir} = $deploy_dir;
+    $self->log($ssh, $log);
+    $self->checkout($ssh);
+
     return;
 }
 
 sub rollback_timestamped {
-    my ($self, $ssh, $conf, $offset) = @_;
-    my $deploy_dir = join('/', $conf->{root}, 'releases');
-    my $current = join('/', $conf->{root}, 'current');
-    print "[".$ssh->get_host."] running rollback task ...\n";
-    my @rels = $ssh->capture("ls -1 ".$deploy_dir);
+    my ($self, $ssh, $offset) = @_;
+
+    $self->log($ssh, "running rollback task ...");
+    my $deploy_dir = join('/', $self->config->{root}, 'releases');
+    my $current    = join('/', $self->config->{root}, 'current');
+    my @rels = $ssh->capture("ls -1 " . $deploy_dir);
     @rels = sort(@rels);
-    my $link = $ssh->capture("ls -l ".$current." | sed 's/^.*->\\s*//'");
+    my $link = $ssh->capture("ls -l " . $current . " | sed 's/^.*->\\s*//'");
     my @path = split(/\//, $link);
     my $current_rel = pop(@path);
     my (@past, @future);
-    foreach my $rel (@rels){
+
+    foreach my $rel (@rels) {
         chomp($rel);
         next unless $rel =~ m{^\w};
-        if($rel == $current_rel){
+        if ($rel == $current_rel) {
             push(@future, $rel);
             next;
         }
-        if(@future){
+        if (@future) {
             push(@future, $rel);
-        } else {
+        }
+        else {
             push(@past, $rel);
         }
     }
-    $deploy_dir = join('/', $conf->{root}, pop(@past));
-    my $log = $ssh->capture("unlink ".$current."; ln -s ".$deploy_dir." ".$current);
-    $self->logger($ssh, $log);
+    $deploy_dir = join('/', $self->config->{root}, pop(@past));
+    my $log = $ssh->capture(
+        "unlink " . $current . "; ln -s " . $deploy_dir . " " . $current);
+    $self->log($ssh, $log);
     return;
 }
 
 sub rollback_scm {
-    my ( $self, $ssh, $conf, $offset ) = @_;
+    my ($self, $ssh, $offset) = @_;
 
     # load SCM plugin
-    $self->load_plugin( $self->scm );
+    $self->load_plugin($self->scm);
     my $tag = $self->get_last_tag($offset);
-    print STDERR "Rolling back to tag: $tag\n" if $self->is_debug;
+    $self->log($ssh, "Rolling back to tag: $tag") if $self->is_debug;
+
     # TODO change checkout to accept an optional tag so we can reuse it
     # here to check out an old version.
+
     return;
 }
 
 sub restart {
-    my ($self, $ssh, $conf) = @_;
-    my ( $pty, $pid ) = $ssh->open2pty("sudo ".$conf->{init}." restart");
+    my ($self, $ssh) = @_;
+
+    $self->log("running restart task ...");
+    my ($pty, $pid) =
+        $ssh->open2pty("sudo " . $self->config->{init} . " restart");
     my $exp = Expect->init($pty);
     my $ret = $exp->interact();
-    print "[".$ssh->get_host."] running restart task ...\n";
-    $self->logger($ssh, "restarted ...");
+    $self->log($ssh, "restarted ..." . Dumper($exp));
+
     return;
 }
 
 sub checkout {
-    my ($self, $ssh, $conf) = @_;
-    print "[".$ssh->get_host."] running checkout task ...\n";
+    my ($self, $ssh) = @_;
+    $self->log($ssh, "running checkout task ...");
     return;
 }
 
 sub cleanup_timestamped {
-    my ($self, $ssh, $conf, $offset) = @_;
-    print STDERR "PATH: ".$conf->{root}."\n";
-    if($conf->{root} =~ m{^.*/\d+$}){
-        my @path = split(/\//, $conf->{root});
+    my ($self, $ssh, $offset) = @_;
+
+    $self->log($ssh, "running cleanup task ...");
+
+    if ($self->config->{root} =~ m{^.*/\d+$}) {
+        my @path = split(/\//, $self->config->{root});
         pop(@path);
         pop(@path);
-        $conf->{root} = join('/', @path);
+        $self->config->{root} = join('/', @path);
     }
-    print STDERR "PATH2: ".$conf->{root}."\n";
-    my $deploy_dir = join('/', $conf->{root}, 'releases');
-    my $current = join('/', $conf->{root}, 'current');
-    print "[".$ssh->get_host."] running cleanup task ...\n";
-    my @rels = $ssh->capture("ls -1 ".$deploy_dir);
+
+    my $deploy_dir = join('/', $self->config->{root}, 'releases');
+    my $current    = join('/', $self->config->{root}, 'current');
+    my @rels = $ssh->capture("ls -1 " . $deploy_dir);
     @rels = sort(@rels);
-    my $link = $ssh->capture("ls -l ".$current." | sed 's/^.*->\\s*//'");
+    my $link = $ssh->capture("ls -l " . $current . " | sed 's/^.*->\\s*//'");
     my @path = split(/\//, $link);
     my $current_rel = pop(@path);
     my (@past, @future);
-    foreach my $rel (@rels){
+
+    foreach my $rel (@rels) {
         chomp($rel);
         next unless $rel =~ m{^\w};
-        if($rel == $current_rel){
+        if ($rel == $current_rel) {
             push(@future, $rel);
             next;
         }
-        if(@future){
+        if (@future) {
             push(@future, $rel);
-        } else {
+        }
+        else {
             push(@past, $rel);
         }
     }
-    $deploy_dir = join('/', $conf->{root}, pop(@past));
-    my $num = $conf->{keep_versions} || 5;
+    $deploy_dir = join('/', $self->config->{root}, pop(@past));
+    my $num = $self->config->{keep_versions} || 5;
     my $log;
-    while($#past > ($num)){
-        my $to_del = join('/', $conf->{root}, 'releases', shift(@past));
-        $log = $ssh->capture("rm -rf ".$to_del);
+    while ($#past > ($num)) {
+        my $to_del = join('/', $self->config->{root}, 'releases', shift(@past));
+        $self->log($ssh, "deleting $to_del");
+        $log = $ssh->capture("rm -rf " . $to_del);
     }
-    $self->logger($ssh, $log);
+    $self->log($ssh, $log);
+
     return;
 }
 
 sub restart_phased {
     my ($self, $ssh, $conf) = @_;
-    my ( $pty, $pid ) = $ssh->open2pty("sudo ".$conf->{init}." restart");
-    my $exp = Expect->init($pty);
-    $exp->interact();
-    print "[".$ssh->get_host."] running restart_phased task ...\n";
-    $self->logger($ssh, "restarted ...");
+
+    $self->log($ssh, "running restart_phased task ...");
+    unless ($ssh->test("sudo " . $self->config->{init} . " restart")) {
+        $self->log(
+            'restart failed: ' . $ssh->error . ' trying stop -> start instead');
+        $ssh->test("sudo " . $self->config->{init} . " stop");
+        $ssh->test("sudo " . $self->config->{init} . " start")
+            or $self->error('restart failed: ' . $ssh->error);
+        return;
+    }
+
+    # my $exp = Expect->init($pty);
+    # $exp->interact();
+    $self->log($ssh, 'restarted ' . $self->config->{init});
+
     return;
 }
 
 sub notify {
     my ($self, $ssh, $conf) = @_;
-    print "[".$ssh->get_host."] running notify task ...\n";
+    $self->log($ssh, "running notify task ...");
     return;
 }
 
-__PACKAGE__
+__PACKAGE__->meta->make_immutable;

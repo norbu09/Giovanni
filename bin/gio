@@ -34,16 +34,17 @@ foreach my $line (keys %{$config}) {
     $cnf->{$name}->{$key} = $config->{$line};
 }
 
-my $gio = Giovanni->new(debug => $debug);
-foreach my $task (keys %{$cnf}) {
+foreach my $project (keys %{$cnf}) {
+    my $gio = Giovanni->new(debug => $debug, config => $cnf->{$project});
+
     given ($command) {
         when ('deploy') {
-            print "{task} Running deploy for '$task'\n";
-            $gio->deploy($cnf->{$task});
+            print "Running deploy for '$project'\n";
+            $gio->deploy;
         }
         when ('rollback') {
-            print "{task} Running rollback for '$task'\n";
-            $gio->rollback($cnf->{$task}, $offset);
+            print "Running rollback for '$project'\n";
+            $gio->rollback($offset);
         }
         default { print "Could not find command '$command'\n"; }
     }
