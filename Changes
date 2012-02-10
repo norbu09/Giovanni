@@ -1,5 +1,8 @@
 Revision history for Giovanni
 
+0.8     2012-02-10T14:36:56
+        added first notification plugin: Jabber [lenz]
+
 0.7     2012-02-09T16:04:59
         fixed loads of things that were only drafts and never really
         worked [lev]

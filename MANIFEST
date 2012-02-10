@@ -18,6 +18,7 @@ inc/Module/Install.pm
 lib/Giovanni.pm
 lib/Giovanni/Stages.pm
 lib/Giovanni/Plugins/Git.pm
+lib/Giovanni/Plugins/Jabber.pm
 Makefile.PL
 MANIFEST
 MANIFEST.SKIP
