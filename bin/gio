@@ -35,6 +35,8 @@ foreach my $line (keys %{$config}) {
 }
 
 foreach my $project (keys %{$cnf}) {
+    $cnf->{$project}->{project} = $project;
+    $cnf->{$project}->{command} = $command;
     my $gio = Giovanni->new(debug => $debug, config => $cnf->{$project});
 
     given ($command) {
