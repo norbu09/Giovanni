@@ -17,6 +17,9 @@ requires 'Net::OpenSSH';
 requires 'Sys::Hostname';
 requires 'Git::Repository';
 requires 'IO::Stty';
+requires 'XML::Twig';
+requires 'AnyEvent';
+requires 'AnyEvent::XMPP::Client';
 
 auto_install;
 

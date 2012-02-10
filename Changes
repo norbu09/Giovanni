@@ -1,5 +1,8 @@
 Revision history for Giovanni
 
+0.9     2012-02-10T18:39:45
+        fixed Makefile [lenz]
+
 0.8     2012-02-10T14:36:56
         added first notification plugin: Jabber [lenz]
 
