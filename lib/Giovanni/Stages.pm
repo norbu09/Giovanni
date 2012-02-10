@@ -179,10 +179,11 @@ sub restart_phased {
     return;
 }
 
-sub notify {
-    my ($self, $ssh, $conf) = @_;
-    $self->log($ssh, "running notify task ...");
+sub send_notify {
+    my ($self, $ssh) = @_;
+    $self->log($ssh, "running send_notify task ...");
     return;
 }
+
 
 __PACKAGE__->meta->make_immutable;

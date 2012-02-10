@@ -77,6 +77,12 @@ has 'config' => (
     required => 1,
 );
 
+has 'notifyer' => (
+    is      => 'rw',
+    isa     => 'Str',
+    default => 'jabber',
+);
+
 =head1 SYNOPSIS
 
 Quick summary of what the module does.
@@ -200,6 +206,15 @@ sub log {
 
     return;
 }
+
+sub notify {
+    my ($self, $ssh, $conf) = @_;
+    # load notify plugin
+    $self->load_plugin($self->notifyer);
+    $self->send_notify($ssh, $conf);
+    return;
+}
+
 
 =head1 AUTHOR
 
