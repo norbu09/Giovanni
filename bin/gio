@@ -70,18 +70,36 @@ gio [options] [deploy|rollback|restart]
 =head1 CONFIG
 
 To configure a project to use Giovanni simply put a `.giovanni.conf`
-file in the root directory of your program. The syntax of the config
-looks like this:
+file in the root directory of your project and run `gio deploy`. The
+syntax of the config for timestamped rollouts looks like this:
 
+    [project "PROJECT"]
+        hosts    = HOST, IP
+        root     = /usr/local/PROJECT
+        init     = /etc/init.d/START_STOP_SCRIPT
+        deploy   = update_cache, rollout_timestamped, restart_phased, cleanup_timestamped, notify
+        rollback = rollback_timestamped, restart_phased, notify
+        repo     = git://github.com/PROJECT.git
+        cache    = /tmp/repo_cache/
+        user     = DEPLOY USER
+        jabber_user = USER@jabber.org
+        jabber_pass = PASS
+        jabber_to = ROOM@conference.jabber.org
 
-    [deploy "project_name"]
-        hosts  = host.name, IP, ...
-        root   = /base/path/to/project
-        init   = /etc/init.d/project_name
-        stages = update_cache, rollout_timestamped, restart_phased, notify
-        repo   = git://github.com/username/project_name.git
-        cache  = /tmp/repo
-        user   = deploy
+The config for a deployment into the git checkout directory looks like
+this:
+
+    [project "PROJECT"]
+        hosts    = HOST, IP
+        root     = /var/www/PROJECTNAME
+        init     = /etc/init.d/START_STOP_SCRIPT
+        deploy   = update_cache, rollout, restart, cleanup_timestamped, notify
+        rollback = rollback, restart, notify
+        repo     = git://github.com/PROJECT.git
+        user     = DEPLOY USER
+        jabber_user = USER@jabber.org
+        jabber_pass = PASS
+        jabber_to = ROOM@conference.jabber.org
 
 =head1 BUGS
 

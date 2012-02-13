@@ -12,11 +12,11 @@ extends 'Giovanni::Stages';
 
 =head1 NAME
 
-Giovanni - The great new Giovanni!
+Giovanni - a Perl based deployment system
 
 =head1 VERSION
 
-Version 1.0.0.9.8.8.7.7
+Version 1.0
 
 =cut
 
@@ -85,23 +85,22 @@ has 'notifyer' => (
 
 =head1 SYNOPSIS
 
-Quick summary of what the module does.
+Giovanni is a Perl replacement for the idea behind Capistrano. It is a
+deployment system that can be used comfortably from the commandline to
+check out code, restart systems and notify.
+The system is currently used with git and manages some Catalyst and
+Mojolicious apps and notifies via Jabber. It supports timestamped
+rollouts (ie have the last 5 versions of your code on the server and link
+to the currently running one) and plain git repositories. It tries to
+detect problems in the deployment process and rolls back. It supports
+manual rollbacks, two restart modes and does all that without any code
+on the server. All you need is a working ssh setup with ssh-keys that
+handle the login. 
+We also use it with Jenkins to automatically deploy
+code that successfully completed the test suite.
 
-Perhaps a little code snippet.
-
-    use Giovanni;
-
-    my $foo = Giovanni->new();
-    ...
-
-=head1 EXPORT
-
-A list of functions that can be exported.  You can delete this section
-if you don't export anything, such as for a purely object-oriented module.
-
-=head1 SUBROUTINES/METHODS
-
-=head2 deploy
+Giovanni comes with a commandline tool called gio. Check the gio manpage
+for the config file format.
 
 =cut
 
@@ -115,9 +114,6 @@ sub deploy {
     $self->process_stages($ssh, 'deploy');
 }
 
-=head2 rollback
-
-=cut
 
 sub rollback {
     my ($self, $offset) = @_;
@@ -171,10 +167,6 @@ sub _get_ssh_conn {
     }
     return $ssh;
 }
-
-=head2 restart
-
-=cut
 
 sub restart {
 }
