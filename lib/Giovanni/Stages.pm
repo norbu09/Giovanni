@@ -96,12 +96,8 @@ sub restart {
     my ($self, $ssh) = @_;
 
     $self->log("running restart task ...");
-    my ($pty, $pid) =
-        $ssh->open2pty("sudo " . $self->config->{init} . " restart");
-    my $exp = Expect->init($pty);
-    my $ret = $exp->interact();
-    $self->log($ssh, "restarted ..." . Dumper($exp));
-
+    my $log = $ssh->capture($self->config->{init});
+    $self->log($ssh, $log);
     return;
 }
 

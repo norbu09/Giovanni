@@ -42,16 +42,17 @@ around 'update_cache' => sub {
 
     my $log;
     my $cache_dir = $self->_get_cache_dir($conf);
-    if ($self->config->{cache}) {
-        if ($ssh->test("[ -d " . $cache_dir . " ]")) {
+
+    if ($cache_dir) {
+        if ($ssh->test("[ -d " . $cache_dir . "/.git ]")) {
             $log .= $ssh->capture("cd $cache_dir && git pull");
             $self->log("running git pull ...");
         }
         else {
-            $log = $ssh->capture("mkdir -p " . $self->config->{cache})
-                unless $ssh->test("[ -d " . $self->config->{cache} . " ]");
-            $log .= $ssh->capture(
-                "git clone " . $self->config->{repo} . " $cache_dir");
+            $log = $ssh->capture("mkdir -p " . $cache_dir)
+                unless $ssh->test("[ -d " . $cache_dir . " ]");
+            $log .= $ssh->capture("cd ". $cache_dir
+                . "&& git clone " . $self->config->{repo} . " .");
             $self->log("running git clone ...");
         }
     }
@@ -78,9 +79,13 @@ around 'checkout' => sub {
 
 sub _get_cache_dir {
     my ($self, $conf) = @_;
-    my @parts = split(/\//, $self->config->{repo});
-    my $git_dir = pop(@parts);
-    return join('/', $self->config->{cache}, $git_dir);
+    if($self->config->{cache}){
+        my @parts = split(/\//, $self->config->{repo});
+        my $git_dir = pop(@parts);
+        return join('/', $self->config->{cache}, $git_dir);
+    } else {
+        return $self->config->{root};
+    }
 }
 
 1;
