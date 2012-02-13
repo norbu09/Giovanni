@@ -16,11 +16,11 @@ Giovanni - a Perl based deployment system
 
 =head1 VERSION
 
-Version 1.0
+Version 1.1.0
 
 =cut
 
-our $VERSION = '1.0';
+our $VERSION = '1.1';
 
 has 'debug' => (
     is        => 'rw',
