@@ -12,6 +12,8 @@ requires 'Config::GitLike';
 requires 'Mouse';
 requires 'Mouse::Util';
 requires 'Mouse::Role';
+requires 'Getopt::Long';
+requires 'Pod::Usage';
 requires 'Expect';
 requires 'Net::OpenSSH';
 requires 'Sys::Hostname';
