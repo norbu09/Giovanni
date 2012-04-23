@@ -18,12 +18,11 @@ around 'send_notify' => sub {
         'just ran a '
       . $self->config->{command} . ' for '
       . $self->config->{project} . ' on '
-      . $self->config->{hosts};
+      . $ssh->get_host;
+    my $j = AnyEvent->condvar;
+    my $cl = AnyEvent::XMPP::Client->new();
     foreach my $to (@tos){
         my $cnf = 1 if ( $to =~ m{conference} );
-
-        my $j = AnyEvent->condvar;
-        my $cl = AnyEvent::XMPP::Client->new();
 
         my ( $disco, $version, $muc, $muc_msg ) if $cnf;
 
@@ -70,8 +69,8 @@ around 'send_notify' => sub {
             },
         );
         $cl->start;
-        $j->wait;
     }
+    $j->wait;
 };
 
 1;
