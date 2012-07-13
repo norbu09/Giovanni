@@ -1,5 +1,8 @@
 Revision history for Giovanni
 
+1.4     2012-07-13T12:18:32
+        implemented transparent post_rollout script stage [lev]
+
 1.3     2012-04-23T17:35:24
         fixed a jabber notify issue [lenz]
 

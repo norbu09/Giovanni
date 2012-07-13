@@ -24,6 +24,7 @@ sub rollout {
     my $log = $ssh->capture("mkdir -p " . $self->config->{deploy_dir});
     $self->log($ssh, $log);
     $self->checkout($ssh);
+    $self->post_rollout($ssh);
 
     return;
 }
@@ -35,11 +36,12 @@ sub rollout_timestamped {
     my $deploy_dir = join('/', $self->config->{root}, 'releases', time);
     my $current = join('/', $self->config->{root}, 'current');
     my $log = $ssh->capture("mkdir -p " . $deploy_dir);
+    $self->config->{deploy_dir} = $deploy_dir;
+    $self->checkout($ssh);
     $log .= $ssh->capture(
         "unlink " . $current . "; ln -s " . $deploy_dir . " " . $current);
-    $self->config->{deploy_dir} = $deploy_dir;
     $self->log($ssh, $log);
-    $self->checkout($ssh);
+    $self->post_rollout($ssh);
 
     return;
 }
@@ -156,13 +158,16 @@ sub cleanup_timestamped {
 }
 
 sub restart_phased {
-    my ($self, $ssh, $conf) = @_;
+    my ($self, $ssh) = @_;
 
     $self->log($ssh, "running restart_phased task ...");
     unless ($ssh->test("sudo " . $self->config->{init} . " restart")) {
         $self->log(
             'restart failed: ' . $ssh->error . ' trying stop -> start instead');
         $ssh->test("sudo " . $self->config->{init} . " stop");
+
+        # give time to exit
+        sleep 2;
         $ssh->test("sudo " . $self->config->{init} . " start")
             or $self->error('restart failed: ' . $ssh->error);
         return;
@@ -181,5 +186,26 @@ sub send_notify {
     return;
 }
 
+sub post_rollout {
+    my ($self, $ssh) = @_;
+
+    return
+        unless (exists $self->config->{post_rollout}
+        and defined $self->config->{post_rollout});
+
+    $self->log($ssh,
+              'running post_rollout script "'
+            . $self->config->{post_rollout}
+            . '" ...');
+    unless (
+        $ssh->test(
+                  'cd '
+                . $self->config->{deploy_dir} . ' && '
+                . $self->config->{post_rollout}))
+    {
+        $self->error("post_rollout script failed: " . $ssh->error);
+    }
+    return;
+}
 
 __PACKAGE__->meta->make_immutable;

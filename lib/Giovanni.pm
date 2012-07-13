@@ -16,11 +16,11 @@ Giovanni - a Perl based deployment system
 
 =head1 VERSION
 
-Version 1.3.3.2.1.0
+Version 1.4
 
 =cut
 
-our $VERSION = '1.3';
+our $VERSION = '1.4';
 
 has 'debug' => (
     is        => 'rw',
@@ -114,7 +114,6 @@ sub deploy {
     $self->process_stages($ssh, 'deploy');
 }
 
-
 sub rollback {
     my ($self, $offset) = @_;
 
@@ -201,12 +200,12 @@ sub log {
 
 sub notify {
     my ($self, $ssh, $conf) = @_;
+
     # load notify plugin
     $self->load_plugin($self->notifyer);
     $self->send_notify($ssh, $conf);
     return;
 }
-
 
 =head1 AUTHOR
 
