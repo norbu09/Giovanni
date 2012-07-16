@@ -16,7 +16,7 @@ Giovanni - a Perl based deployment system
 
 =head1 VERSION
 
-Version 1.4
+Version 1.4.4.5.5.4.4
 
 =cut
 
