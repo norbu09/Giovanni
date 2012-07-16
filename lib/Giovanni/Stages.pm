@@ -73,7 +73,7 @@ sub rollback_timestamped {
             push(@past, $rel);
         }
     }
-    $deploy_dir = join('/', $self->config->{root}, pop(@past));
+    $deploy_dir = join('/', $self->config->{root}, 'releases', pop(@past));
     my $log = $ssh->capture(
         "unlink " . $current . "; ln -s " . $deploy_dir . " " . $current);
     $self->log($ssh, $log);
