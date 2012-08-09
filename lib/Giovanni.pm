@@ -20,7 +20,7 @@ Version 1.4.4.5.5.4.4
 
 =cut
 
-our $VERSION = '1.5';
+our $VERSION = '1.6';
 
 has 'debug' => (
     is        => 'rw',
@@ -124,15 +124,22 @@ sub rollback {
 sub process_stages {
     my ($self, $ssh, $mode) = @_;
 
-    my @stages = split(/\s*,\s*/, $self->config->{$mode});
+    my $conf_key = ($mode eq 'restart' ? 'deploy' : $mode);
+    my @stages = split(/\s*,\s*/, $self->config->{$conf_key});
     foreach my $stage (@stages) {
-        $self->process_hosts($ssh, $stage, $mode);
+        if($mode eq 'restart'){
+            next unless $stage =~ m/restart/;
+            $self->process_hosts($ssh, $stage, $mode);
 
-        # if one host produced an error while restarting, rollback all
-        if ($self->error and ($stage =~ m/^restart/i) and ($mode eq 'deploy')) {
-            $self->log('ERROR', $self->error);
-            $self->process_stages($ssh, 'rollback');
-            return;
+        } else {
+            $self->process_hosts($ssh, $stage, $mode);
+
+            # if one host produced an error while restarting, rollback all
+            if ($self->error and ($stage =~ m/^restart/i) and ($mode eq 'deploy')) {
+                $self->log('ERROR', $self->error);
+                $self->process_stages($ssh, 'rollback');
+                return;
+            }
         }
     }
 }
@@ -168,6 +175,10 @@ sub _get_ssh_conn {
 }
 
 sub restart {
+    my ($self) = @_;
+
+    my $ssh = $self->_get_ssh_conn;
+    $self->process_stages($ssh, 'restart');
 }
 
 sub load_plugin {

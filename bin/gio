@@ -51,6 +51,10 @@ foreach my $project (keys %{$cnf}) {
             print "Running rollback for '$project'\n";
             $gio->rollback($offset);
         }
+        when ('restart') {
+            print "Running restart for '$project'\n";
+            $gio->restart;
+        }
         default { print "Could not find command '$command'\n"; }
     }
 }

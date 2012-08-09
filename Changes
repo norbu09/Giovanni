@@ -1,5 +1,8 @@
 Revision history for Giovanni
 
+1.6     2012-08-09T16:05:19
+        added restart as a separate function
+
 1.5     2012-08-09T15:42:29
         added support for HipChat
 
