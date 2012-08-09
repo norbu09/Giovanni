@@ -38,6 +38,9 @@ foreach my $project (keys %{$cnf}) {
     $cnf->{$project}->{project} = $project;
     $cnf->{$project}->{command} = $command;
     my $gio = Giovanni->new(debug => $debug, config => $cnf->{$project});
+    if(exists $cnf->{$project}->{hipchat_token}){
+        $gio->notifyer('HipChat');
+    }
 
     given ($command) {
         when ('deploy') {
