@@ -1,4 +1,4 @@
-package Giovanni::Plugins::HipChat;
+package Giovanni::Plugins::Hipchat;
 
 use Mouse::Role;
 use Data::Dumper;
@@ -7,7 +7,7 @@ use LWP::UserAgent;
 around 'send_notify' => sub {
     my ( $orig, $self, $ssh ) = @_;
 
-    print "notify via jabber\n";
+    print "notify via HipChat\n";
     my @tos = split(/\s*,\s*/, $self->config->{hipchat_rooms});
     my $msg =
         'just ran a '
@@ -17,7 +17,7 @@ around 'send_notify' => sub {
     my $ua = LWP::UserAgent->new();
     my $url = 'https://api.hipchat.com/v1/rooms/message?format=json&auth_token='.$self->config->{hipchat_token};
     foreach my $to (@tos){
-        $ua->request(POST $url, {
+        $ua->post($url, {
             room_id => $to,
             from => 'Giovanni',
             message => $msg,
