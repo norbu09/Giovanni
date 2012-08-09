@@ -19,6 +19,7 @@ lib/Giovanni.pm
 lib/Giovanni/Stages.pm
 lib/Giovanni/Plugins/Git.pm
 lib/Giovanni/Plugins/Jabber.pm
+lib/Giovanni/Plugins/Hipchat.pm
 Makefile.PL
 MANIFEST
 MANIFEST.SKIP

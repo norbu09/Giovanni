@@ -20,7 +20,7 @@ Version 1.4.4.5.5.4.4
 
 =cut
 
-our $VERSION = '1.4';
+our $VERSION = '1.5';
 
 has 'debug' => (
     is        => 'rw',
