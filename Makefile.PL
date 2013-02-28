@@ -20,8 +20,9 @@ requires 'Sys::Hostname';
 requires 'Git::Repository';
 requires 'IO::Stty';
 requires 'XML::Twig';
-requires 'AnyEvent';
-requires 'AnyEvent::XMPP::Client';
+#requires 'AnyEvent';
+#requires 'AnyEvent::XMPP::Client';
+requires 'LWP::UserAgent';
 
 auto_install;
 

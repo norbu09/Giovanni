@@ -1,5 +1,9 @@
 Revision history for Giovanni
 
+1.7     2013-02-28T13:04:44
+        - removed XMPP dependency as it is horrible to install
+        - added LWP::UserAgent for the HipChat plugin
+
 1.6     2012-08-09T16:05:19
         added restart as a separate function
 
