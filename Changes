@@ -1,5 +1,8 @@
 Revision history for Giovanni
 
+1.8     2013-02-28T13:46:23
+        added a username to the deploy message
+
 1.7     2013-02-28T13:04:44
         - removed XMPP dependency as it is horrible to install
         - added LWP::UserAgent for the HipChat plugin

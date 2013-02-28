@@ -23,6 +23,7 @@ requires 'XML::Twig';
 #requires 'AnyEvent';
 #requires 'AnyEvent::XMPP::Client';
 requires 'LWP::UserAgent';
+requires 'LWP::Protocol::https';
 
 auto_install;
 

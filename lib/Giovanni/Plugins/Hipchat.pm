@@ -9,8 +9,8 @@ around 'send_notify' => sub {
 
     print "notify via HipChat\n";
     my @tos = split(/\s*,\s*/, $self->config->{hipchat_rooms});
-    my $msg =
-        'just ran a '
+    my $msg = $ENV{USER}
+      . ' just ran a '
       . $self->config->{command} . ' for '
       . $self->config->{project} . ' on '
       . $ssh->get_host;
