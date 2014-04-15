@@ -180,6 +180,29 @@ sub restart_phased {
     return;
 }
 
+sub reload_phased {
+    my ($self, $ssh) = @_;
+
+    $self->log($ssh, "running reload_phased task ...");
+    unless ($ssh->test("sudo " . $self->config->{reload})) {
+        $self->log(
+            'reload failed: ' . $ssh->error . ' trying stop -> start instead');
+        $ssh->test("sudo " . $self->config->{init} . " stop");
+
+        # give time to exit
+        sleep 2;
+        $ssh->test("sudo " . $self->config->{init} . " start")
+            or $self->error('restart failed: ' . $ssh->error);
+        return;
+    }
+
+    # my $exp = Expect->init($pty);
+    # $exp->interact();
+    $self->log($ssh, 'reloaded ' . $self->config->{reload});
+
+    return;
+}
+
 sub send_notify {
     my ($self, $ssh) = @_;
     $self->log($ssh, "running send_notify task ...");
