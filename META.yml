@@ -34,4 +34,4 @@ resources:
   bugtracker: https://github.com/norbu09/Giovanni/issues
   homepage: https://github.com/norbu09/Giovanni/wiki
   repository: git://github.com/norbu09/Giovanni.git
-version: 0.9
+version: 1.10

@@ -245,7 +245,7 @@ Giovanni::Stages
 
 =head1 VERSION
 
-version 0.9
+version 1.10
 
 =head1 AUTHOR
 
