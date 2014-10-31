@@ -14,12 +14,6 @@ meta-spec:
   version: 1.4
 name: Giovanni
 requires:
-  AnyEvent: 0
-  AnyEvent::XMPP::Client: 0
-  AnyEvent::XMPP::Ext::Disco: 0
-  AnyEvent::XMPP::Ext::MUC: 0
-  AnyEvent::XMPP::Ext::MUC::Message: 0
-  AnyEvent::XMPP::Ext::Version: 0
   Config::GitLike: 0
   Cwd: 0
   Data::Dumper: 0

@@ -12,7 +12,6 @@ ignore.txt
 lib/Giovanni.pm
 lib/Giovanni/Plugins/Git.pm
 lib/Giovanni/Plugins/Hipchat.pm
-lib/Giovanni/Plugins/Jabber.pm
 lib/Giovanni/Stages.pm
 t/00-load.t
 t/boilerplate.t
