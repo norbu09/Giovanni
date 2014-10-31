@@ -11,7 +11,7 @@ use Giovanni::Stages;
 extends 'Giovanni::Stages';
 
 
-our $VERSION = '1.8';
+our $VERSION = '1.9';
 
 has 'debug' => (
     is        => 'rw',
@@ -231,7 +231,7 @@ Giovanni - a Perl based deployment system
 
 =head1 VERSION
 
-Version 1.8.7.7.4.4.5.5.4.4
+Version 1.9
 
 =head1 AUTHOR
 
