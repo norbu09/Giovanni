@@ -3,6 +3,7 @@ package Giovanni::Plugins::Hipchat;
 use Mouse::Role;
 use Data::Dumper;
 use LWP::UserAgent;
+use LWP::Protocol::https;
 
 around 'send_notify' => sub {
     my ( $orig, $self, $ssh ) = @_;
