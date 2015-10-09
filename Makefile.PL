@@ -29,6 +29,7 @@ my %WriteMakefileArgs = (
     "Expect" => 0,
     "Getopt::Long" => 0,
     "Git::Repository" => 0,
+    "LWP::Protocol::https" => 0,
     "LWP::UserAgent" => 0,
     "Mouse" => 0,
     "Mouse::Role" => 0,
@@ -42,7 +43,7 @@ my %WriteMakefileArgs = (
   "TEST_REQUIRES" => {
     "Test::More" => 0
   },
-  "VERSION" => "1.10",
+  "VERSION" => "1.11",
   "test" => {
     "TESTS" => "t/*.t"
   }
@@ -56,6 +57,7 @@ my %FallbackPrereqs = (
   "Expect" => 0,
   "Getopt::Long" => 0,
   "Git::Repository" => 0,
+  "LWP::Protocol::https" => 0,
   "LWP::UserAgent" => 0,
   "Mouse" => 0,
   "Mouse::Role" => 0,

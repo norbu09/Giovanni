@@ -1,9 +1,26 @@
 ==================================================
-Changes from 2013-10-31 00:00:00 +0000 to present.
+Changes from 2014-10-09 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 1.10 at 2014-10-31 04:24:56 +0000
+version 1.11 at 2015-10-09 04:43:16 +0000
+-----------------------------------------
+
+  Change: a30d7e75bc0d597d1a7ee6622318d813b57f80a1
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2015-10-09 17:42:59 +0000
+
+    load LWP::Protocol::https explicitly so it gets pulled in as a
+    dependency 
+
+  Change: 7dcceaf30b1130286bd4df36e9b72e597a17103c
+  Author: Lenz Gschwendtner <lenz@springtimesoft.com>
+  Date : 2014-10-31 12:25:24 +0000
+
+    v1.10 
+
+-----------------------------------------
+version 1.10 at 2014-10-31 04:24:05 +0000
 -----------------------------------------
 
   Change: 2dc4aeaa95965b4502bcb8501dc49fd13dde0585
