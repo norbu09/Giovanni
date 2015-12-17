@@ -161,21 +161,27 @@ sub restart_phased {
     my ($self, $ssh) = @_;
 
     $self->log($ssh, "running restart_phased task ...");
-    unless ($ssh->test("sudo " . $self->config->{init} . " restart")) {
+    unless ($ssh->test($self->_init_command('restart'))) {
         $self->log(
             'restart failed: ' . $ssh->error . ' trying stop -> start instead');
-        $ssh->test("sudo " . $self->config->{init} . " stop");
+        $ssh->test($self->_init_command('stop'));
 
         # give time to exit
         sleep 2;
-        $ssh->test("sudo " . $self->config->{init} . " start")
+        $ssh->test($self->_init_command('start'))
             or $self->error('restart failed: ' . $ssh->error);
         return;
     }
 
     # my $exp = Expect->init($pty);
     # $exp->interact();
-    $self->log($ssh, 'restarted ' . $self->config->{init});
+    $self->log(
+        $ssh,
+        'restarted '
+            . (
+              $self->config->{systemd}
+            ? $self->config->{systemd}
+            : $self->config->{init}));
 
     return;
 }
@@ -184,21 +190,27 @@ sub reload_phased {
     my ($self, $ssh) = @_;
 
     $self->log($ssh, "running reload_phased task ...");
-    unless ($ssh->test("sudo " . $self->config->{reload})) {
+    unless ($ssh->test($self->_init_command('restart'))) {
         $self->log(
             'reload failed: ' . $ssh->error . ' trying stop -> start instead');
-        $ssh->test("sudo " . $self->config->{init} . " stop");
+        $ssh->test($self->_init_command("stop"));
 
         # give time to exit
         sleep 2;
-        $ssh->test("sudo " . $self->config->{init} . " start")
+        $ssh->test($self->_init_command("start"))
             or $self->error('restart failed: ' . $ssh->error);
         return;
     }
 
     # my $exp = Expect->init($pty);
     # $exp->interact();
-    $self->log($ssh, 'reloaded ' . $self->config->{reload});
+    $self->log(
+        $ssh,
+        'restarted '
+            . (
+              $self->config->{systemd}
+            ? $self->config->{systemd}
+            : $self->config->{init}));
 
     return;
 }
@@ -227,6 +239,18 @@ sub post_rollout {
                 . $self->config->{post_rollout}))
     {
         $self->error("post_rollout script failed: " . $ssh->error);
+    }
+    return;
+}
+
+sub _init_command {
+    my ($self, $command) = @_;
+
+    if (defined $self->config->{systemd}) {
+        return "sudo systemctl $command " . $self->config->{systemd} . ".service";
+    }
+    else {
+        return "sudo " . $self->config->{init} . " $command";
     }
     return;
 }
