@@ -204,7 +204,7 @@ Giovanni
 
 =head1 VERSION
 
-version 1.11
+version 1.12
 
 =head1 SYNOPSIS
 
