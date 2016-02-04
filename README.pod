@@ -33,6 +33,33 @@ for the config file format.
 
 Giovanni - a Perl based deployment system
 
+=head1 Usage and Settings
+ 
+Does your app have a F<.giovanni.conf> in its root? Then you're good to go.
+Just run C<gio deploy> from the root of your project and giovanni handles the
+rest,  deploying the latest version of your github code to the remote machine.
+ 
+If you run into problems you can immediately switch back to the previous
+version of the software by running C<gio rollback>.
+ 
+F<.giovanni.conf> specifies your deployment settings (note the branch is
+hardcoded to C<master>), with probably the most interesting being C<root> which
+is where the current and previous deployed versions are stored. There's also a
+setting for the location of the git cache which prevents the remote machine
+having to redownload the complete F<.git> repository every time. The C<hosts>
+setting is a lists of hosts to run the deployment on, and the C<user> variable
+sets the user account used for deployment.
+ 
+For a quick example of a F<.giovanni.conf> see the F<etc/giovanni.conf> file in
+this project.
+ 
+The root directory has a set of deployments in its F<$ROOT/releases/>
+directory. When you do a C<gio deploy> a new version of the code is checked out
+there, named after the current unix-epoch time, and then the F<$ROOT/current>
+symlink is changed to point at this directory. The currently running version of
+your software is always located here. When you do a rollback this symblink is
+set to point at the previous version in the release dir.
+
 =head1 VERSION
 
 Version 1.9
