@@ -247,7 +247,7 @@ sub _init_command {
     my ($self, $command) = @_;
 
     if (defined $self->config->{systemd}) {
-        return "sudo systemctl $command " . $self->config->{systemd} . ".service";
+        return "sudo /bin/systemctl $command " . $self->config->{systemd} . ".service";
     }
     else {
         return "sudo " . $self->config->{init} . " $command";
